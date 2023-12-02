@@ -53,7 +53,7 @@ class Calibration:
 
 
 if __name__ == "__main__":
-    with open("day1.txt", "r") as f:
+    with open("static/day1.txt", "r") as f:
         input_data = f.read().splitlines()
 
     soln = Calibration.solve(input_data, with_spelled_nums=True)

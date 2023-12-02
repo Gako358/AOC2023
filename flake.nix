@@ -1,58 +1,25 @@
 {
-  description = "advent of code 2023";
-
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
+    nixpkgs.url = "github:NixOS/nixpkgs";
+    utils.url = "github:numtide/flake-utils";
   };
 
   outputs = {
+    self,
     nixpkgs,
-    flake-utils,
-    ...
-  }:
-    flake-utils.lib.eachDefaultSystem (
-      system: let
-        pkgs = import nixpkgs {
-          inherit system;
-          overlays = [
-            (self: super: rec {
-              jdk = super.graalvm-ce;
-              sbt = super.sbt.override {jre = super.graalvm-ce;};
-              maven = super.maven.override {
-                inherit jdk;
-              };
-            })
-          ];
-        };
-
-        phytonInputs = with pkgs; [
-          python3
+    utils,
+  }: let
+    supportedSystems = ["x86_64-linux" "x86_64-darwin" "aarch64-linux" "aarch64-darwin"];
+    forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
+    pkgs = forAllSystems (system: nixpkgs.legacyPackages.${system});
+  in {
+    devShells = forAllSystems (system: {
+      default = pkgs.${system}.mkShellNoCC {
+        packages = with pkgs.${system}; [
+          python3Packages.pip
+          python3Packages.numpy
         ];
-
-        jvmInputs = with pkgs; [
-          jdk
-          maven
-          sbt
-          coreutils
-        ];
-
-        jsInputs = with pkgs; [
-          nodejs
-        ];
-
-        jvmHook = ''
-          JAVA_HOME="${pkgs.jdk}"
-        '';
-        ghHook = ''
-          source ~/.env
-        '';
-      in {
-        devShells.default = pkgs.mkShell {
-          name = "aoc-dev-shell";
-          buildInputs = jvmInputs ++ jsInputs ++ phytonInputs;
-          shellHook = jvmHook + ghHook;
-        };
-      }
-    );
+      };
+    });
+  };
 }
