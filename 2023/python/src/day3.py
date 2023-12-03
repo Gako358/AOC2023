@@ -50,6 +50,7 @@ class EngineSchematic:
         return numbers
 
     def solve(self, gears=False):
+        self.searched = []
         parts = []
         for i in range(0, len(self.schematic)):
             for j in range(0, len(self.schematic[i])):
@@ -72,5 +73,12 @@ if __name__ == "__main__":
     engine = EngineSchematic("./../../resources/day3.txt")
     print(engine.solve())
 
+    print(engine.solve(gears=True))
+
+    engine_test = EngineSchematic(EngineSchematic.TEST_SCHEMATIC, test_result=4361)
     assert engine_test.solve() == engine_test.test_result, "Test case failed!"
+    print("Test case passed!")
+
+    engine_test2 = EngineSchematic(EngineSchematic.TEST_SCHEMATIC, test_result=467835)
+    assert engine_test2.solve(gears=True) == engine_test2.test_result, "Test case failed!"
     print("Test case passed!")
