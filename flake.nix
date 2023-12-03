@@ -52,6 +52,7 @@
             scala-cli
             coursier
             python311
+            python311Packages.numpy
           ];
           shellHook = ''
             export JAVA_HOME=${jdk}

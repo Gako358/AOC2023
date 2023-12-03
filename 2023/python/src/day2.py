@@ -10,7 +10,7 @@ class Game:
 
 
 games = []
-with open("static/day2.txt", "r") as file:
+with open("./../../resources/day2.txt", "r") as file:
     for line in file:
         id, *turns = line.strip().split(": ")
         id = int(id.split(" ")[1])
