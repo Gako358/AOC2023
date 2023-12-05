@@ -7,6 +7,10 @@ class ScratchCard:
         matches = self.winning_numbers & self.your_numbers
         return (lambda x: 2 ** (len(x) - 1) if x else 0)(matches)
 
+    def calculate_won_cards(self):
+        matches = self.winning_numbers & self.your_numbers
+        return len(matches)
+
     @staticmethod
     def read_cards_from_file(filename):
         with open(filename, "r") as file:
@@ -16,6 +20,15 @@ class ScratchCard:
                 if numbers.startswith("Card")
             ]
         return cards
+
+    @staticmethod
+    def calculate_total_cards(cards):
+        num_copies = [1] * len(cards)
+        for i in range(len(cards)):
+            won_cards = cards[i].calculate_won_cards()
+            for j in range(i + 1, min(i + 1 + won_cards, len(cards))):
+                num_copies[j] += num_copies[i]
+        return sum(num_copies)
 
     @staticmethod
     def test_scratch_card():
@@ -41,6 +54,8 @@ def main():
     cards = ScratchCard.read_cards_from_file("./../../resources/day4.txt")
     total_points = sum(card.calculate_points() for card in cards)
     print(f"Total points: {total_points}")
+    total_cards = ScratchCard.calculate_total_cards(cards)
+    print(f"Total cards: {total_cards}")
 
 
 if __name__ == "__main__":
