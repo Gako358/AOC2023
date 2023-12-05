@@ -1,71 +1,64 @@
-class Garden:
-    def __init__(self, seeds, maps):
-        self.seeds = seeds
-        self.maps = maps
+import re
+from scipy.optimize import minimize
 
-    def convert(self, source, conversion_map):
-        for src_range, dest in conversion_map:
-            if src_range[0] <= source <= src_range[1]:
-                print(f"Converting {source} to {dest} using {src_range}")
-                return dest
-        return source  
+class Garden:
+    def __init__(self, seeds, ranges):
+        self.seeds = seeds
+        self.ranges = ranges
+
+    def process(self, seed):
+        for range in self.ranges:
+            for dst, src, width in range:
+                if src <= seed <= (src + width):
+                    seed = seed - src + dst
+                    break
+        return seed
 
     def find_lowest_location(self):
-        lowest_location = float("inf")
-        for seed in self.seeds:
-            number = seed
-            for conversion_map in self.maps:
-                converted = self.convert(number, conversion_map)
-                if converted is not None:
-                    number = converted
-                else:
-                    break
-            lowest_location = min(lowest_location, number)
-            print(f"Lowest location so far: {lowest_location}")
-        return lowest_location
+        answer = min([self.process(seed) for seed in self.seeds])
+        return answer
+    
+    def test_find_lowest_location(self):
+        seeds = [79, 14, 55, 13]
+        ranges = [
+            [[50, 98, 2], [52, 50, 48]],
+            [[81, 79, 1], [14, 14, 1], [57, 55, 1], [13, 13, 1]],
+            [[81, 79, 1], [53, 14, 1], [57, 55, 1], [52, 13, 1]],
+            [[81, 79, 1], [49, 14, 1], [53, 55, 1], [41, 13, 1]],
+            [[74, 79, 1], [42, 14, 1], [46, 55, 1], [34, 13, 1]],
+            [[78, 79, 1], [42, 14, 1], [82, 55, 1], [34, 13, 1]],
+            [[78, 79, 1], [43, 14, 1], [82, 55, 1], [35, 13, 1]],
+            [[82, 79, 1], [43, 14, 1], [86, 55, 1], [35, 13, 1]]
+        ]
+        garden = Garden(seeds, ranges)
+        result = garden.find_lowest_location()
+        print(f"find_lowest_location returned: {result}")
+        assert result == 35, "Test failed!"
+        print("Test passed!")
+
+    def find_lowest_location_part2(self):
+        answer = 1 << 31
+        for j in range(len(self.seeds) // 2):
+            bounds = (self.seeds[2 * j], self.seeds[2 * j] + self.seeds[2 * j + 1])
+            res = minimize(self.process, x0=self.seeds[2 * j], bounds=[bounds], method='powell')
+            answer = min(answer, res.fun)
+        return int(answer)
 
     @staticmethod
     def read_from_file(filename):
-        with open(filename, "r") as file:
-            file.readline()  # skip the 'seeds:' line
-            seeds = list(map(int, file.readline().split()))
-
-            maps = []
-            for _ in range(7):
-                file.readline()  # skip the map title line
-                conversion_map = []
-                line = file.readline()
-                while line.strip():  # read until an empty line
-                    src1, src2, dest = map(int, line.split())
-                    conversion_map.append(
-                        ((src1, src2), dest)
-                    )  # create a range with two numbers
-                    line = file.readline()
-                maps.append(conversion_map)
-            return Garden(seeds, maps)
-
-    @staticmethod
-    def test_garden():
-        garden = Garden(
-            [10],
-            [
-                [((1, 20), 5)],
-                [((1, 10), 8)],
-                [((1, 5), 10)],
-                [((6, 10), 1)],
-                [((1, 5), 6)],
-                [((6, 10), 3)],
-                [((1, 5), 9)],
-            ],
-        )
-        assert garden.find_lowest_location() == 9
-
+        s = open(filename).read().strip().split("\n\n")
+        seeds = [int(x) for x in re.findall("\d+", s[0])]
+        ranges = []
+        for x in s[1:]:
+            y = x.split("\n")
+            ranges.append([[int(w) for w in re.findall("\d+", z)] for z in y[1:]])
+        return Garden(seeds, ranges)
 
 def main():
-    Garden.test_garden()
     garden = Garden.read_from_file("./../../resources/day5.txt")
-    print(garden.find_lowest_location())
-
+    print("Part 1:", garden.find_lowest_location())
+    print("Part 2:", garden.find_lowest_location_part2())
+    garden.test_find_lowest_location()
 
 if __name__ == "__main__":
     main()

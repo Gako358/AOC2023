@@ -53,6 +53,7 @@
             coursier
             python311
             python311Packages.numpy
+            python311Packages.scipy
           ];
           shellHook = ''
             export JAVA_HOME=${jdk}
